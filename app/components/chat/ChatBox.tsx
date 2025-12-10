@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
 import { ModelSelector } from '~/components/chat/ModelSelector';
 import { APIKeyManager } from './APIKeyManager';
-import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
+import { LOCAL_PROVIDERS, autoAllowToolsStore, setAutoAllowTools } from '~/lib/stores/settings';
 import FilePreview from './FilePreview';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { SendButton } from './SendButton.client';
 import { IconButton } from '~/components/ui/IconButton';
 import { toast } from 'react-toastify';
 import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
-import { SupabaseConnection } from './SupabaseConnection';
+
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
@@ -19,6 +19,7 @@ import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
 import type { DesignScheme } from '~/types/design-scheme';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 import { McpTools } from './MCPTools';
+import { useStore } from '@nanostores/react';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -64,6 +65,27 @@ interface ChatBoxProps {
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = (props) => {
+  const autoAllowTools = useStore(autoAllowToolsStore);
+  const [isModelSettingsOpen, setIsModelSettingsOpen] = useState(false);
+  const modelSettingsRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modelSettingsRef.current && !modelSettingsRef.current.contains(event.target as Node)) {
+        setIsModelSettingsOpen(false);
+      }
+    };
+
+    if (isModelSettingsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isModelSettingsOpen]);
+
   return (
     <div
       className={classNames(
@@ -102,36 +124,6 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         <rect className={classNames(styles.PromptEffectLine)} pathLength="100" strokeLinecap="round"></rect>
         <rect className={classNames(styles.PromptShine)} x="48" y="24" width="70" height="1"></rect>
       </svg>
-      <div>
-        <ClientOnly>
-          {() => (
-            <div className={props.isModelSettingsCollapsed ? 'hidden' : ''}>
-              <ModelSelector
-                key={props.provider?.name + ':' + props.modelList.length}
-                model={props.model}
-                setModel={props.setModel}
-                modelList={props.modelList}
-                provider={props.provider}
-                setProvider={props.setProvider}
-                providerList={props.providerList || (PROVIDER_LIST as ProviderInfo[])}
-                apiKeys={props.apiKeys}
-                modelLoading={props.isModelLoading}
-              />
-              {(props.providerList || []).length > 0 &&
-                props.provider &&
-                !LOCAL_PROVIDERS.includes(props.provider.name) && (
-                  <APIKeyManager
-                    provider={props.provider}
-                    apiKey={props.apiKeys[props.provider.name] || ''}
-                    setApiKey={(key) => {
-                      props.onApiKeysChange(props.provider.name, key);
-                    }}
-                  />
-                )}
-            </div>
-          )}
-        </ClientOnly>
-      </div>
       <FilePreview
         files={props.uploadedFiles}
         imageDataList={props.imageDataList}
@@ -260,6 +252,67 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
         </ClientOnly>
         <div className="flex justify-between items-center text-sm p-4 pt-2">
           <div className="flex gap-1 items-center">
+            <IconButton
+              title={autoAllowTools ? 'Auto Allow Tools: ON' : 'Auto Allow Tools: OFF'}
+              className={classNames(
+                'transition-all',
+                autoAllowTools
+                  ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+                  : 'text-bolt-elements-textTertiary',
+              )}
+              onClick={() => {
+                setAutoAllowTools(!autoAllowTools);
+                toast.info(autoAllowTools ? 'Auto Allow Tools: OFF' : 'Auto Allow Tools: ON');
+              }}
+            >
+              <div className={autoAllowTools ? 'i-ph:robot-fill text-xl' : 'i-ph:robot text-xl'}></div>
+            </IconButton>
+            {/* Model Settings Dropdown */}
+            <div className="relative" ref={modelSettingsRef}>
+              <IconButton
+                title={`Model Settings: ${props.model}`}
+                className={classNames('transition-all', {
+                  'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent': isModelSettingsOpen,
+                  'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault': !isModelSettingsOpen,
+                })}
+                onClick={() => setIsModelSettingsOpen(!isModelSettingsOpen)}
+                disabled={!props.providerList || props.providerList.length === 0}
+              >
+                <div className="i-ph:gear-six text-xl" />
+              </IconButton>
+              {isModelSettingsOpen && (
+                <div className="absolute bottom-full left-0 mb-2 w-[420px] bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor rounded-lg shadow-lg z-50 p-3">
+                  <ClientOnly>
+                    {() => (
+                      <>
+                        <ModelSelector
+                          key={props.provider?.name + ':' + props.modelList.length}
+                          model={props.model}
+                          setModel={props.setModel}
+                          modelList={props.modelList}
+                          provider={props.provider}
+                          setProvider={props.setProvider}
+                          providerList={props.providerList || (PROVIDER_LIST as ProviderInfo[])}
+                          apiKeys={props.apiKeys}
+                          modelLoading={props.isModelLoading}
+                        />
+                        {(props.providerList || []).length > 0 &&
+                          props.provider &&
+                          !LOCAL_PROVIDERS.includes(props.provider.name) && (
+                            <APIKeyManager
+                              provider={props.provider}
+                              apiKey={props.apiKeys[props.provider.name] || ''}
+                              setApiKey={(key) => {
+                                props.onApiKeysChange(props.provider.name, key);
+                              }}
+                            />
+                          )}
+                      </>
+                    )}
+                  </ClientOnly>
+                </div>
+              )}
+            </div>
             <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
             <McpTools />
             <IconButton title="Upload file" className="transition-all" onClick={() => props.handleFileUpload()}>
@@ -304,20 +357,6 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
               </IconButton>
             )}
-            <IconButton
-              title="Model Settings"
-              className={classNames('transition-all flex items-center gap-1', {
-                'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent':
-                  props.isModelSettingsCollapsed,
-                'bg-bolt-elements-item-backgroundDefault text-bolt-elements-item-contentDefault':
-                  !props.isModelSettingsCollapsed,
-              })}
-              onClick={() => props.setIsModelSettingsCollapsed(!props.isModelSettingsCollapsed)}
-              disabled={!props.providerList || props.providerList.length === 0}
-            >
-              <div className={`i-ph:caret-${props.isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
-              {props.isModelSettingsCollapsed ? <span className="text-xs">{props.model}</span> : <span />}
-            </IconButton>
           </div>
           {props.input.length > 3 ? (
             <div className="text-xs text-bolt-elements-textTertiary">
@@ -325,7 +364,6 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               <kbd className="kdb px-1.5 py-0.5 rounded bg-bolt-elements-background-depth-2">Return</kbd> a new line
             </div>
           ) : null}
-          <SupabaseConnection />
           <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
         </div>
       </div>

@@ -403,3 +403,25 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
     set({ selectedTab: tab });
   },
 }));
+
+// Auto-allow tool execution store
+const AUTO_ALLOW_TOOLS_KEY = 'auto_allow_tools';
+
+const getInitialAutoAllowState = (): boolean => {
+  if (!isBrowser) {
+    return false;
+  }
+
+  const saved = localStorage.getItem(AUTO_ALLOW_TOOLS_KEY);
+  return saved === 'true';
+};
+
+export const autoAllowToolsStore = atom<boolean>(getInitialAutoAllowState());
+
+export const setAutoAllowTools = (enabled: boolean) => {
+  autoAllowToolsStore.set(enabled);
+
+  if (isBrowser) {
+    localStorage.setItem(AUTO_ALLOW_TOOLS_KEY, String(enabled));
+  }
+};

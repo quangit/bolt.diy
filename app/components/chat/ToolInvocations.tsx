@@ -14,6 +14,7 @@ import { logger } from '~/utils/logger';
 import { themeStore, type Theme } from '~/lib/stores/theme';
 import { useStore } from '@nanostores/react';
 import type { ToolCallAnnotation } from '~/types/context';
+import { autoAllowToolsStore } from '~/lib/stores/settings';
 
 const highlighterOptions = {
   langs: ['json'],
@@ -275,6 +276,7 @@ interface ToolCallsListProps {
 
 const ToolCallsList = memo(({ toolInvocations, toolCallAnnotations, addToolResult }: ToolCallsListProps) => {
   const [expanded, setExpanded] = useState<{ [id: string]: boolean }>({});
+  const autoAllowTools = useStore(autoAllowToolsStore);
 
   // OS detection for shortcut display
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -288,6 +290,30 @@ const ToolCallsList = memo(({ toolInvocations, toolCallAnnotations, addToolResul
     });
     setExpanded(expandedState);
   }, [toolInvocations]);
+
+  // Auto-allow tools logic: check every second and auto-approve pending tool calls
+  useEffect(() => {
+    if (!autoAllowTools) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      const pendingToolCalls = toolInvocations.filter((inv) => inv.toolInvocation.state === 'call');
+
+      if (pendingToolCalls.length > 0) {
+        // Auto-approve the first pending tool call
+        const firstPending = pendingToolCalls[0];
+        addToolResult({
+          toolCallId: firstPending.toolInvocation.toolCallId,
+          result: TOOL_EXECUTION_APPROVAL.APPROVE,
+        });
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [autoAllowTools, toolInvocations, addToolResult]);
 
   // Keyboard shortcut logic
   useEffect(() => {
@@ -353,17 +379,17 @@ const ToolCallsList = memo(({ toolInvocations, toolCallAnnotations, addToolResul
               animate="visible"
               transition={{ duration: 0.2, ease: cubicEasingFn }}
             >
-              <div className="bg-bolt-elements-background-depth-3 rounded-lg p-2">
-                <div key={toolCallId} className="flex gap-1">
-                  <div className="flex flex-col items-center ">
-                    <span className="mr-auto font-light font-normal text-md text-bolt-elements-textPrimary rounded-md">
+              <div className="bg-bolt-elements-background-depth-3 rounded-lg p-3">
+                <div key={toolCallId} className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium text-md text-bolt-elements-textPrimary">
                       {toolName}
                     </span>
-                    <span className="text-xs text-bolt-elements-textSecondary font-light break-words max-w-64">
+                    <span className="text-xs text-bolt-elements-textSecondary font-light break-words">
                       {annotation?.toolDescription}
                     </span>
                   </div>
-                  <div className="flex items-center justify-end gap-2 ml-auto">
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       className={classNames(
                         'h-10 px-2.5 py-1.5 rounded-lg text-xs h-auto',
