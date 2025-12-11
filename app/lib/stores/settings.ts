@@ -91,8 +91,8 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
-        // Local providers should be disabled by default
-        enabled: !LOCAL_PROVIDERS.includes(provider.name),
+        // Only OpenAI is enabled by default, all other providers are disabled
+        enabled: provider.name === 'OpenAI',
       },
     };
   });

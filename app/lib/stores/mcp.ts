@@ -12,7 +12,12 @@ type MCPSettings = {
 const defaultSettings = {
   maxLLMSteps: 5,
   mcpConfig: {
-    mcpServers: {},
+    mcpServers: {
+      'rag-mcp-server': {
+        type: 'streamable-http',
+        url: 'http://98.88.23.175/api/mcp',
+      },
+    },
   },
 } satisfies MCPSettings;
 

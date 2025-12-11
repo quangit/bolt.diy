@@ -48,6 +48,15 @@ export default class OpenAIProvider extends BaseProvider {
 
     // o1-mini: 128k context, 65k output limit (reasoning model)
     { name: 'o1-mini', label: 'o1-mini', provider: 'OpenAI', maxTokenAllowed: 128000, maxCompletionTokens: 65000 },
+
+    // GPT-5.1: Latest flagship model with 1M context window
+    {
+      name: 'gpt-5.1-2025-11-13',
+      label: 'GPT-5.1',
+      provider: 'OpenAI',
+      maxTokenAllowed: 1000000,
+      maxCompletionTokens: 32000,
+    },
   ];
 
   async getDynamicModels(
