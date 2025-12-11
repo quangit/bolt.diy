@@ -4,9 +4,9 @@ import DeepseekProvider from './providers/deepseek';
 import GoogleProvider from './providers/google';
 import GroqProvider from './providers/groq';
 import HuggingFaceProvider from './providers/huggingface';
-import LMStudioProvider from './providers/lmstudio';
+// import LMStudioProvider from './providers/lmstudio';
 import MistralProvider from './providers/mistral';
-import OllamaProvider from './providers/ollama';
+// import OllamaProvider from './providers/ollama';
 import OpenRouterProvider from './providers/open-router';
 import OpenAILikeProvider from './providers/openai-like';
 import OpenAIProvider from './providers/openai';
@@ -28,14 +28,14 @@ export {
   HyperbolicProvider,
   MistralProvider,
   MoonshotProvider,
-  OllamaProvider,
+  // OllamaProvider,
   OpenAIProvider,
   OpenRouterProvider,
   OpenAILikeProvider,
   PerplexityProvider,
   XAIProvider,
   TogetherProvider,
-  LMStudioProvider,
+  // LMStudioProvider,
   AmazonBedrockProvider,
   GithubProvider,
 };

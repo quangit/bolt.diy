@@ -91,8 +91,8 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
-        // Only OpenAI is enabled by default, all other providers are disabled
-        enabled: provider.name === 'OpenAI',
+        // Only Anthropic is enabled by default, all other providers are disabled
+        enabled: provider.name === 'Anthropic',
       },
     };
   });
@@ -409,11 +409,12 @@ const AUTO_ALLOW_TOOLS_KEY = 'auto_allow_tools';
 
 const getInitialAutoAllowState = (): boolean => {
   if (!isBrowser) {
-    return false;
+    return true; // Default to ON
   }
 
   const saved = localStorage.getItem(AUTO_ALLOW_TOOLS_KEY);
-  return saved === 'true';
+  // If no saved value exists, default to true (ON)
+  return saved === null ? true : saved === 'true';
 };
 
 export const autoAllowToolsStore = atom<boolean>(getInitialAutoAllowState());

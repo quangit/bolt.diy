@@ -80,8 +80,9 @@ EXPOSE 5173
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
   CMD curl -fsS http://localhost:5173/ || exit 1
 
-# Start using dockerstart script with Wrangler
-CMD ["pnpm", "run", "dockerstart"]
+# Force rebuild - using remix-serve for MCP compatibility (v2)
+# Start using Node.js server for MCP compatibility
+CMD ["pnpm", "run", "dockerstart-node"]
 
 
 # ---- development stage ----

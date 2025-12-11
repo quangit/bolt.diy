@@ -15,7 +15,7 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import styles from './BaseChat.module.scss';
 import type { ProviderInfo } from '~/types/model';
-import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
+// import { ColorSchemeDialog } from '~/components/ui/ColorSchemeDialog';
 import type { DesignScheme } from '~/types/design-scheme';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 import { McpTools } from './MCPTools';
@@ -313,12 +313,12 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 </div>
               )}
             </div>
-            <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
+            {/* <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} /> */}
             <McpTools />
             <IconButton title="Upload file" className="transition-all" onClick={() => props.handleFileUpload()}>
               <div className="i-ph:paperclip text-xl"></div>
             </IconButton>
-            <IconButton
+            {/* <IconButton
               title="Enhance prompt"
               disabled={props.input.length === 0 || props.enhancingPrompt}
               className={classNames('transition-all', props.enhancingPrompt ? 'opacity-100' : '')}
@@ -332,7 +332,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               ) : (
                 <div className="i-bolt:stars text-xl"></div>
               )}
-            </IconButton>
+            </IconButton> */}
 
             <SpeechRecognitionButton
               isListening={props.isListening}
@@ -340,7 +340,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
               onStop={props.stopListening}
               disabled={props.isStreaming}
             />
-            {props.chatStarted && (
+            {/* {props.chatStarted && (
               <IconButton
                 title="Discuss"
                 className={classNames(
@@ -356,7 +356,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
                 <div className={`i-ph:chats text-xl`} />
                 {props.chatMode === 'discuss' ? <span>Discuss</span> : <span />}
               </IconButton>
-            )}
+            )} */}
           </div>
           {props.input.length > 3 ? (
             <div className="text-xs text-bolt-elements-textTertiary">
